@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestão Clínica</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../assets/css/app.css" />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="../index.html">Gestão Clínica</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="../medicos/list.html">Médicos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../clientes/list.html">Clientes</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../index.html">Exames</a>
+            </li>
+          </ul>
+          <button
+            class="btn btn-outline-light d-flex align-items-center justify-content-center"
+            onclick="desconectar()"
+            data-bs-toggle="tooltip"
+            data-bs-title="Desconectar"
+          >
+            <span class="material-icons">logout</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="flex-grow-1">
+      <div class="container mt-4">
+        <h1 class="text-center mb-4">Agendar Exame</h1>
+        <form id="schedule-form">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="client-id" class="form-label">Cliente</label>
+              <select class="form-select" id="client-id" required></select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="medic-id" class="form-label">Médico</label>
+              <select class="form-select" id="medic-id" required></select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="exam-id" class="form-label">Exame</label>
+              <select class="form-select" id="exam-id" required></select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="scheduled-date" class="form-label">Data</label>
+              <input type="date" class="form-control" id="scheduled-date" required />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="scheduled-time" class="form-label">Hora</label>
+              <input type="time" class="form-control" id="scheduled-time" required disabled step="3600" />
+            </div>
+            <div class="col-md-6 d-flex align-items-end justify-content-end">
+              <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <footer class="bg-blue text-white text-center py-3 mt-4">
+      <p class="mb-0">© 2025 Gestão Clínica. Todos os direitos reservados.</p>
+    </footer>
+    <!-- Bootstrap JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Axios JS + Funções da API-->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="../assets/js/api.js"></script>
+
+    <!-- Funções genéricas (Toda tela deve ter)-->
+    <script src="../assets/js/app.js"></script>
+
+    <!-- Funções específicas da tela -->
+
+    <script>
+      async function loadFormOptions() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const clientId = urlParams.get("clientId");
+        const medicId = urlParams.get("medicId");
+        const examId = urlParams.get("examId");
+
+        if (clientId) {
+          const client = await showClient(clientId);
+          const clientSelect = document.getElementById("client-id");
+          clientSelect.innerHTML = `<option value="${client.id}" selected>${client.name}</option>`;
+          clientSelect.disabled = true;
+        } else {
+          const clients = await getClients();
+          const clientSelect = document.getElementById("client-id");
+          clients.forEach(client => {
+            clientSelect.innerHTML += `<option value="${client.id}">${client.name}</option>`;
+          });
+        }
+
+        if (medicId) {
+          const medic = await showMedic(medicId);
+          const medicSelect = document.getElementById("medic-id");
+          medicSelect.innerHTML = `<option value="${medic.id}" selected>${medic.name}</option>`;
+          medicSelect.disabled = true;
+        } else {
+          const medics = await getMedics();
+          const medicSelect = document.getElementById("medic-id");
+          medics.forEach(medic => {
+            medicSelect.innerHTML += `<option value="${medic.id}">${medic.name}</option>`;
+          });
+        }
+
+        if (examId) {
+          const exam = await showExam(examId);
+          const examSelect = document.getElementById("exam-id");
+          examSelect.innerHTML = `<option value="${exam.id}" selected>${exam.name}</option>`;
+          examSelect.disabled = true;
+        } else {
+          const exams = await getExams();
+          const examSelect = document.getElementById("exam-id");
+          exams.forEach(exam => {
+            examSelect.innerHTML += `<option value="${exam.id}">${exam.name}</option>`;
+          });
+        }
+      }
+
+      document.getElementById("scheduled-date").addEventListener("change", function () {
+        const scheduledTimeInput = document.getElementById("scheduled-time");
+        if (this.value) {
+          scheduledTimeInput.disabled = false;
+        } else {
+          scheduledTimeInput.disabled = true;
+          scheduledTimeInput.value = "";
+        }
+      });
+
+      document.getElementById("scheduled-time").addEventListener("change", async function () {
+        const timeParts = this.value.split(":");
+        const hour = timeParts[0];
+        this.value = `${hour}:00:00`;
+        const scheduledDateInput = document.getElementById("scheduled-date");
+        const selectedDate = scheduledDateInput.value;
+        const selectedTime = this.value;
+        if (selectedDate && selectedTime) {
+          let isAvailable = await checkAvailability(selectedDate, selectedTime);
+
+          if (!isAvailable) {
+            alert("A data e hora selecionadas não estão disponíveis.");
+            this.value = ""; // Reseta o campo de hora
+          }
+        }
+
+
+      });
+
+      document.getElementById("scheduled-time").setAttribute("step", "3600");
+
+      document.getElementById("schedule-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const clientId = document.getElementById("client-id").value;
+        const medicId = document.getElementById("medic-id").value;
+        const examId = document.getElementById("exam-id").value;
+        const scheduledDate = document.getElementById("scheduled-date").value;
+        const scheduledTime = document.getElementById("scheduled-time").value;
+
+        const scheduleData = {
+          client_id: clientId,
+          medic_id: medicId,
+          exam_id: examId,
+          scheduled_date: scheduledDate,
+          scheduled_time: scheduledTime,
+        };
+
+        const response = await createExamSchedule(scheduleData);
+
+        if (response && response.id) {
+          window.location.href = `./agendamento.html?id=${response.id}`;
+        } else {
+          alert("Erro ao salvar o agendamento. Tente novamente.");
+        }
+      });
+
+      window.onload = loadFormOptions;
+    </script>
+  </body>
+</html>

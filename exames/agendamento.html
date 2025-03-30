@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestão Clínica</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../assets/css/app.css" />
+  </head>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="../index.html">Gestão Clínica</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="../medicos/list.html">Médicos</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="../clientes/list.html">Clientes</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="../index.html">Exames</a>
+          </li>
+        </ul>
+        <button
+          class="btn btn-outline-light d-flex align-items-center justify-content-center"
+          onclick="desconectar()"
+          data-bs-toggle="tooltip"
+          data-bs-title="Desconectar"
+        >
+          <span class="material-icons">logout</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="flex-grow-1">
+    <div class="container mt-4">
+      <div class="row">
+        <div class="col-12">
+          <div class="p-4 border rounded"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-blue text-white text-center py-3 mt-4">
+    <p class="mb-0">© 2025 Gestão Clínica. Todos os direitos reservados.</p>
+  </footer>
+  <!-- Bootstrap JS -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"
+  ></script>
+  <!-- Axios JS + Funções da API-->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="../assets/js/api.js"></script>
+
+  <!-- Funções genéricas (Toda tela deve ter)-->
+  <script src="../assets/js/app.js"></script>
+
+  <script>
+    let global_schedule; // Variável global para armazenar o agendamento
+
+    (async function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const scheduleId = urlParams.get("id");
+      if (!scheduleId) {
+        alert("ID do agendamento não fornecido.");
+        return;
+      }
+
+      const titleContainer = document.querySelector(".p-4.border.rounded");
+
+      // Adiciona placeholders enquanto os dados não são carregados
+      titleContainer.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <h1>Detalhes do Agendamento</h1>
+          <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle placeholder" type="button" disabled></button>
+          </div>
+        </div>
+        <div class="mt-4">
+          <h3 class="placeholder-glow"><span class="placeholder col-6"></span></h3>
+          <p class="placeholder-glow"><span class="placeholder col-4"></span></p>
+          <p class="placeholder-glow"><span class="placeholder col-3"></span></p>
+          <p class="placeholder-glow"><span class="placeholder col-5"></span></p>
+        </div>
+        <hr />
+        <div class="mt-4">
+          <h3 class="placeholder-glow"><span class="placeholder col-6"></span></h3>
+          <p class="placeholder-glow"><span class="placeholder col-4"></span></p>
+          <p class="placeholder-glow"><span class="placeholder col-3"></span></p>
+          <p class="placeholder-glow"><span class="placeholder col-5"></span></p>
+        </div>
+        <hr />
+        <div class="mt-4">
+          <h3 class="placeholder-glow"><span class="placeholder col-6"></span></h3>
+          <p class="placeholder-glow"><span class="placeholder col-4"></span></p>
+          <p class="placeholder-glow"><span class="placeholder col-3"></span></p>
+          <p class="placeholder-glow"><span class="placeholder col-5"></span></p>
+        </div>
+        <hr />
+        <div class="mt-4">
+          <h3 class="placeholder-glow"><span class="placeholder col-6"></span></h3>
+          <p class="placeholder-glow"><span class="placeholder col-4"></span></p>
+        </div>
+      `;
+
+      const schedule = await showExamSchedule(scheduleId);
+      global_schedule = schedule; // Atualiza a variável global com o agendamento
+
+      // Atualiza o conteúdo com os dados reais
+      titleContainer.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <h1>Detalhes do Agendamento</h1>
+          <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Ações
+            </button>
+            <ul class="dropdown-menu">
+              ${
+                schedule.status === "agendado"
+                  ? `
+                ${
+                  schedule.times_rescheduled < 3
+                    ? '<li><a class="dropdown-item" href="#" onclick="reagendarExame()">Reagendar exame</a></li>'
+                    : ""
+                }
+                <li><a class="dropdown-item" href="#" onclick="cancelarExame()">Cancelar exame</a></li>
+                <li><a class="dropdown-item" href="#" onclick="concluirExame()">Lançar resultado do exame</a></li>
+              `
+                  : ""
+              }
+              ${
+                schedule.status === "cancelado"
+                  ? '<li><a class="dropdown-item" href="#" onclick="reativarExame()">Reativar exame</a></li>'
+                  : ""
+              }
+              ${
+                schedule.result
+                  ? `<li><a class="dropdown-item" href="./result.html?id=${schedule.result.id}">Ver resultado do exame</a></li>`
+                  : ""
+              }
+              <li><a class="dropdown-item text-danger" href="#" onclick="excluirExame()">Excluir exame</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="mt-4">
+          <h3>Agendamento</h3>
+          <p><strong>Data e Hora:</strong> ${schedule.date_time_scheduled}</p>
+          <p><strong>Status:</strong> ${schedule.status}</p>
+        </div>
+        <hr />
+        <div class="row mt-4">
+          <div class="col-md-6">
+            <h3>Médico</h3>
+            <p><strong>Nome:</strong> ${schedule.medic.name}</p>
+            <p><strong>Especialidade:</strong> ${schedule.medic.speciality}</p>
+            <p><strong>CRM:</strong> ${schedule.medic.masked_crm}</p>
+            <p><strong>Telefone:</strong> ${schedule.medic.masked_phone}</p>
+            <p><strong>Email:</strong> ${schedule.medic.email}</p>
+          </div>
+          <div class="col-md-6">
+            <h3>Cliente</h3>
+            <p><strong>Nome:</strong> ${schedule.client.name}</p>
+            <p><strong>Idade:</strong> ${schedule.client.age}</p>
+            <p><strong>Endereço:</strong> ${schedule.client.address}</p>
+            <p><strong>Data de Nascimento:</strong> ${schedule.client.masked_birth_date}</p>
+            <p><strong>CPF:</strong> ${schedule.client.masked_cpf}</p>
+            <p><strong>Telefone:</strong> ${schedule.client.masked_phone}</p>
+            <p><strong>Email:</strong> ${schedule.client.email}</p>
+          </div>
+        </div>
+        <hr />
+        <div class="mt-4">
+          <h3>Exame</h3>
+          <p><strong>Nome:</strong> ${schedule.exam.name}</p>
+          <p><strong>Preço:</strong> R$ ${schedule.exam.price}</p>
+          <p><strong>Duração:</strong> ${schedule.exam.duration}</p>
+          <p><strong>Descrição:</strong> ${schedule.exam.description}</p>
+        </div>
+      `;
+    })();
+
+    // Funções auxiliares
+    window.reativarExame = async function () {
+      const response = await updateExamSchedule(global_schedule.id, { status: "agendado" });
+      if (response) {
+        alert("Exame reativado com sucesso!");
+        location.reload();
+      } else {
+        alert("Erro ao reativar o exame.");
+      }
+    };
+
+    window.excluirExame = async function () {
+      const confirmDelete = confirm("Você tem certeza que deseja excluir este exame? Esta ação não pode ser desfeita.");
+      if (confirmDelete) {
+        const response = await deleteExamSchedule(global_schedule.id);
+        if (response) {
+          alert("Exame excluído com sucesso!");
+          window.location.href = "../index.html";
+        } else {
+          alert("Erro ao excluir o exame.");
+        }
+      }
+    };
+
+    window.reagendarExame = function () {
+      const modalBody = document.createElement("div");
+
+      const dateInput = document.createElement("input");
+      dateInput.type = "date";
+      dateInput.className = "form-control mb-3";
+      dateInput.id = "reschedule-date";
+      modalBody.appendChild(dateInput);
+
+      const timeInput = document.createElement("input");
+      timeInput.type = "time";
+      timeInput.className = "form-control mb-3";
+      timeInput.id = "reschedule-time";
+      timeInput.setAttribute("step", "3600");
+      timeInput.disabled = true;
+      modalBody.appendChild(timeInput);
+
+      dateInput.addEventListener("change", function () {
+        if (this.value) {
+          timeInput.disabled = false;
+        } else {
+          timeInput.disabled = true;
+          timeInput.value = "";
+        }
+      });
+
+      dateInput.addEventListener("change", async function () {
+        const selectedDate = this.value;
+        const selectedTime = timeInput.value;
+
+        if (selectedDate && selectedTime) {
+          const isAvailable = await checkAvailability(selectedDate, selectedTime);
+
+          if (!isAvailable) {
+            alert("A data e hora selecionadas não estão disponíveis.");
+          }
+        }
+      });
+
+      timeInput.addEventListener("change", async function () {
+        const timeParts = this.value.split(":");
+        const hour = timeParts[0];
+        this.value = `${hour}:00:00`;
+
+        const selectedDate = dateInput.value;
+        const selectedTime = this.value;
+
+        if (selectedDate && selectedTime) {
+          const isAvailable = await checkAvailability(selectedDate, selectedTime);
+
+          if (!isAvailable) {
+            alert("A data e hora selecionadas não estão disponíveis.");
+            this.value = ""; // Reseta o campo de hora
+          }
+        }
+      });
+
+      const saveButton = document.createElement("button");
+      saveButton.className = "btn btn-primary";
+      saveButton.textContent = "Salvar";
+      saveButton.onclick = async function () {
+        const selectedDate = dateInput.value;
+        const selectedTime = timeInput.value;
+
+        if (!selectedDate || !selectedTime) {
+          alert("Por favor, preencha todos os campos.");
+          return;
+        }
+
+        try {
+          console.log("Chamando checkAvailability com:", selectedDate, selectedTime); // Debugging
+          const isAvailable = await checkAvailability(selectedDate, selectedTime);
+          console.log("Resultado de checkAvailability:", isAvailable); // Debugging
+
+          if (!isAvailable) {
+            alert("A data e hora selecionadas não estão disponíveis.");
+            return;
+          }
+
+          const payload = {
+            scheduled_date: selectedDate,
+            scheduled_time: selectedTime,
+            times_rescheduled: global_schedule.times_rescheduled + 1,
+          };
+
+          const response = await updateExamSchedule(global_schedule.id, payload);
+          if (response) {
+            alert("Exame reagendado com sucesso!");
+            location.reload();
+          } else {
+            alert("Erro ao reagendar o exame.");
+          }
+        } catch (error) {
+          console.error("Erro ao verificar disponibilidade ou reagendar:", error);
+          alert("Ocorreu um erro ao processar o reagendamento. Tente novamente.");
+        }
+      };
+
+      const modalInstance = createModal("Reagendar exame", modalBody, [saveButton]);
+      modalInstance.show();
+    };
+
+    window.cancelarExame = async function() {
+      try {
+        const response = await updateExamSchedule(global_schedule.id, { status: "cancelado" });
+        if (response) {
+          alert("Exame cancelado com sucesso!");
+          location.reload();
+        } else {
+          alert("Erro ao cancelar o exame.");
+        }
+      } catch (error) {
+        console.error("Erro ao cancelar o exame:", error);
+        alert("Ocorreu um erro ao cancelar o exame. Tente novamente.");
+      }
+    };
+
+    window.concluirExame = function() {
+      const modalBody = document.createElement("div");
+
+      // Campo para resultado
+      const resultInput = document.createElement("textarea");
+      resultInput.className = "form-control mb-3";
+      resultInput.id = "result";
+      resultInput.placeholder = "Digite o resultado do exame";
+      modalBody.appendChild(resultInput);
+
+      // Campo para observações
+      const observationsInput = document.createElement("textarea");
+      observationsInput.className = "form-control mb-3";
+      observationsInput.id = "observations";
+      observationsInput.placeholder = "Digite observações (opcional)";
+      modalBody.appendChild(observationsInput);
+
+      // Campo para data do resultado
+      const resultDateInput = document.createElement("input");
+      resultDateInput.type = "date";
+      resultDateInput.className = "form-control mb-3";
+      resultDateInput.id = "result-date";
+      resultDateInput.value = new Date().toISOString().split("T")[0]; // Data de hoje
+      modalBody.appendChild(resultDateInput);
+
+      // Botão salvar para o footer
+      const saveButton = document.createElement("button");
+      saveButton.className = "btn btn-primary";
+      saveButton.textContent = "Salvar";
+      saveButton.onclick = async function() {
+        const result = resultInput.value;
+        const observations = observationsInput.value;
+        const resultDate = resultDateInput.value;
+
+        if (!result || !resultDate) {
+          alert("Por favor, preencha os campos obrigatórios.");
+          return;
+        }
+
+        const payload = {
+          exam_scheduling_id: global_schedule.id,
+          result: result,
+          observations: observations,
+          result_date: resultDate
+        };
+
+        try {
+          const response = await createResult(payload);
+          if (response) {
+            alert("Resultado cadastrado com sucesso!");
+            location.reload();
+          } else {
+            alert("Erro ao cadastrar o resultado.");
+          }
+        } catch (error) {
+          console.error("Erro ao cadastrar o resultado:", error);
+          alert("Ocorreu um erro ao cadastrar o resultado. Tente novamente.");
+        }
+      };
+
+      // Criar o modal passando o botão como array para o terceiro parâmetro (buttons)
+      const modalInstance = createModal("Cadastrar Resultado", modalBody, [saveButton]);
+      modalInstance.show();
+    };
+  </script>
+</html>

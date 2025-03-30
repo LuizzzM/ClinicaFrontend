@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resultado do Exame</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../assets/css/app.css" />
+    <style>
+      .result-label {
+        font-weight: 600;
+        color: #495057;
+      }
+      .result-card {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      }
+      .result-card:hover {
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+      }
+      .action-button {
+        min-width: 120px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="../index.html">Gestão Clínica</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="../medicos/list.html">Médicos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../clientes/list.html">Clientes</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../index.html">Exames</a>
+            </li>
+          </ul>
+          <button
+            class="btn btn-outline-light d-flex align-items-center justify-content-center"
+            onclick="desconectar()"
+            data-bs-toggle="tooltip"
+            data-bs-title="Desconectar"
+          >
+            <span class="material-icons">logout</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="flex-grow-1">
+      <div class="container mt-4">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="../index.html">Início</a></li>
+            <li class="breadcrumb-item"><a href="../index.html">Exames</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Resultado</li>
+          </ol>
+        </nav>
+
+        <h1 class="text-center mb-4">Resultado do Exame</h1>
+        
+        <div id="loadingResult" class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Carregando resultado...</span>
+          </div>
+          <p class="mt-2">Carregando dados do resultado...</p>
+        </div>
+        
+        <div id="resultNotFound" class="alert alert-warning d-none" role="alert">
+          <h4 class="alert-heading"><i class="material-icons align-bottom">warning</i> Resultado não encontrado</h4>
+          <p>Não foi possível encontrar o resultado solicitado. Verifique se o ID está correto ou se o resultado não foi removido.</p>
+          <hr>
+          <p class="mb-0">
+            <a href="../index.html" class="btn btn-outline-warning">
+              <i class="material-icons align-bottom">home</i> Voltar para a página inicial
+            </a>
+          </p>
+        </div>
+        
+        <div id="result-container" class="d-none">
+          <div class="card result-card mb-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+              <h5 class="mb-0" id="exam-name">Resultado de Exame</h5>
+              <span class="badge bg-success" id="result-date-badge">Data</span>
+            </div>
+            <div class="card-body">
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <h6 class="card-subtitle mb-3 text-muted">Informações do Paciente</h6>
+                  <p><span class="result-label">Paciente:</span> <span id="client-name">-</span></p>
+                  <p><span class="result-label">CPF:</span> <span id="client-cpf">-</span></p>
+                  <p><span class="result-label">Data de Nascimento:</span> <span id="client-birth-date">-</span></p>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="card-subtitle mb-3 text-muted">Informações do Exame</h6>
+                  <p><span class="result-label">Exame:</span> <span id="exam-type">-</span></p>
+                  <p><span class="result-label">Médico:</span> <span id="medic-name">-</span></p>
+                  <p><span class="result-label">Data do Exame:</span> <span id="exam-date">-</span></p>
+                </div>
+              </div>
+              
+              <hr>
+              
+              <h6 class="card-subtitle mb-3 text-muted">Resultado</h6>
+              <div class="p-3 bg-light rounded">
+                <div id="result-content" class="mb-4">-</div>
+              </div>
+              
+              <h6 class="card-subtitle mt-4 mb-3 text-muted">Observações</h6>
+              <div class="p-3 bg-light rounded">
+                <div id="result-observations">-</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-4 d-flex justify-content-between">
+            <a id="back-to-exam-link" href="#" class="btn btn-outline-secondary action-button">
+              <i class="material-icons align-bottom me-1">arrow_back</i> Voltar
+            </a>
+            <div>
+              <button class="btn btn-warning action-button me-2" onclick="editarResultado()">
+                <i class="material-icons align-bottom me-1">edit</i> Editar
+              </button>
+              <button class="btn btn-danger action-button" onclick="excluirResultado()">
+                <i class="material-icons align-bottom me-1">delete</i> Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="bg-blue text-white text-center py-3 mt-4">
+      <p class="mb-0">© 2025 Gestão Clínica. Todos os direitos reservados.</p>
+    </footer>
+    
+    <!-- Bootstrap JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Axios JS + Funções da API-->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="../assets/js/api.js"></script>
+
+    <!-- Funções genéricas (Toda tela deve ter)-->
+    <script src="../assets/js/app.js"></script>
+
+    <script>
+      // Armazena o resultado carregado para uso em outras funções
+      let resultadoAtual = null;
+      let agendamentoRelacionado = null;
+      
+      async function carregarResultado() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const resultId = urlParams.get("id");
+        
+        // Mostra loader e esconde conteúdo
+        document.getElementById("loadingResult").classList.remove("d-none");
+        document.getElementById("result-container").classList.add("d-none");
+        document.getElementById("resultNotFound").classList.add("d-none");
+
+        if (!resultId) {
+          document.getElementById("loadingResult").classList.add("d-none");
+          document.getElementById("resultNotFound").classList.remove("d-none");
+          return;
+        }
+
+        try {
+          // Carrega o resultado
+          resultadoAtual = await showResult(resultId);
+          
+          if (!resultadoAtual) {
+            throw new Error("Resultado não encontrado");
+          }
+          
+          // Carrega o agendamento relacionado para obter detalhes do exame, médico e paciente
+          agendamentoRelacionado = await showExamSchedule(resultadoAtual.exam_scheduling_id);
+          
+          // Preenche os dados na interface
+          preencherDetalhesResultado();
+          
+          // Mostra o container de resultado e esconde o loader
+          document.getElementById("loadingResult").classList.add("d-none");
+          document.getElementById("result-container").classList.remove("d-none");
+          
+          // Configura o link de volta para o agendamento
+          document.getElementById("back-to-exam-link").href = `./agendamento.html?id=${resultadoAtual.exam_scheduling_id}`;
+          
+        } catch (error) {
+          console.error("Erro ao carregar o resultado:", error);
+          document.getElementById("loadingResult").classList.add("d-none");
+          document.getElementById("resultNotFound").classList.remove("d-none");
+          showNotification("Erro ao carregar o resultado do exame.", "error");
+        }
+      }
+      
+      function preencherDetalhesResultado() {
+        if (!resultadoAtual || !agendamentoRelacionado) return;
+        
+        // Dados do resultado
+        document.getElementById("result-content").textContent = resultadoAtual.result;
+        document.getElementById("result-observations").textContent = resultadoAtual.observations || "Nenhuma observação registrada.";
+        document.getElementById("result-date-badge").textContent = formatDate(resultadoAtual.result_date, "short");
+        
+        // Dados do exame
+        document.getElementById("exam-name").textContent = `Resultado: ${agendamentoRelacionado.exam.name}`;
+        document.getElementById("exam-type").textContent = agendamentoRelacionado.exam.name;
+        document.getElementById("exam-date").textContent = agendamentoRelacionado.date_time_scheduled;
+        
+        // Dados do médico
+        document.getElementById("medic-name").textContent = agendamentoRelacionado.medic.name;
+        
+        // Dados do paciente
+        document.getElementById("client-name").textContent = agendamentoRelacionado.client.name;
+        document.getElementById("client-cpf").textContent = agendamentoRelacionado.client.masked_cpf;
+        document.getElementById("client-birth-date").textContent = agendamentoRelacionado.client.masked_birth_date;
+      }
+
+      async function editarResultado() {
+        if (!resultadoAtual) return;
+
+        const modalBody = document.createElement("div");
+        
+        // Cria a introdução do formulário
+        const introText = document.createElement("p");
+        introText.className = "mb-3";
+        introText.textContent = `Editando resultado do exame "${agendamentoRelacionado?.exam?.name || 'N/A'}" para o paciente "${agendamentoRelacionado?.client?.name || 'N/A'}".`;
+        modalBody.appendChild(introText);
+
+        // Form container
+        const form = document.createElement("form");
+        form.id = "edit-result-form";
+        form.className = "needs-validation";
+        form.noValidate = true;
+        modalBody.appendChild(form);
+
+        // Campo para resultado
+        const resultDiv = document.createElement("div");
+        resultDiv.className = "mb-3";
+        form.appendChild(resultDiv);
+        
+        const resultLabel = document.createElement("label");
+        resultLabel.className = "form-label";
+        resultLabel.htmlFor = "edit-result";
+        resultLabel.textContent = "Resultado";
+        resultDiv.appendChild(resultLabel);
+
+        const resultInput = document.createElement("textarea");
+        resultInput.className = "form-control";
+        resultInput.id = "edit-result";
+        resultInput.name = "result";
+        resultInput.rows = 5;
+        resultInput.value = resultadoAtual.result;
+        resultInput.required = true;
+        resultDiv.appendChild(resultInput);
+        
+        const resultFeedback = document.createElement("div");
+        resultFeedback.className = "invalid-feedback";
+        resultFeedback.textContent = "O resultado é obrigatório.";
+        resultDiv.appendChild(resultFeedback);
+
+        // Campo para observações
+        const observationsDiv = document.createElement("div");
+        observationsDiv.className = "mb-3";
+        form.appendChild(observationsDiv);
+        
+        const observationsLabel = document.createElement("label");
+        observationsLabel.className = "form-label";
+        observationsLabel.htmlFor = "edit-observations";
+        observationsLabel.textContent = "Observações (opcional)";
+        observationsDiv.appendChild(observationsLabel);
+
+        const observationsInput = document.createElement("textarea");
+        observationsInput.className = "form-control";
+        observationsInput.id = "edit-observations";
+        observationsInput.name = "observations";
+        observationsInput.rows = 3;
+        observationsInput.value = resultadoAtual.observations || "";
+        observationsDiv.appendChild(observationsInput);
+
+        // Campo para data do resultado
+        const resultDateDiv = document.createElement("div");
+        resultDateDiv.className = "mb-3";
+        form.appendChild(resultDateDiv);
+        
+        const resultDateLabel = document.createElement("label");
+        resultDateLabel.className = "form-label";
+        resultDateLabel.htmlFor = "edit-result-date";
+        resultDateLabel.textContent = "Data do Resultado";
+        resultDateDiv.appendChild(resultDateLabel);
+
+        const resultDateInput = document.createElement("input");
+        resultDateInput.type = "date";
+        resultDateInput.className = "form-control";
+        resultDateInput.id = "edit-result-date";
+        resultDateInput.name = "result_date";
+        resultDateInput.value = resultadoAtual.result_date;
+        resultDateInput.required = true;
+        resultDateDiv.appendChild(resultDateInput);
+        
+        const dateFeedback = document.createElement("div");
+        dateFeedback.className = "invalid-feedback";
+        dateFeedback.textContent = "A data do resultado é obrigatória.";
+        resultDateDiv.appendChild(dateFeedback);
+
+        // Botões na div de rodapé do modal
+        const cancelButton = document.createElement("button");
+        cancelButton.className = "btn btn-secondary me-2";
+        cancelButton.textContent = "Cancelar";
+        cancelButton.setAttribute("data-bs-dismiss", "modal");
+        
+        // Botão para salvar
+        const saveButton = document.createElement("button");
+        saveButton.className = "btn btn-primary";
+        saveButton.type = "button";
+        
+        const saveSpan = document.createElement("span");
+        saveSpan.className = "d-flex align-items-center";
+        saveButton.appendChild(saveSpan);
+        
+        const saveIcon = document.createElement("i");
+        saveIcon.className = "material-icons me-2";
+        saveIcon.textContent = "save";
+        saveSpan.appendChild(saveIcon);
+        
+        const saveText = document.createTextNode("Salvar");
+        saveSpan.appendChild(saveText);
+        
+        const spinner = document.createElement("span");
+        spinner.className = "spinner-border spinner-border-sm ms-2 d-none";
+        spinner.setAttribute("role", "status");
+        spinner.setAttribute("aria-hidden", "true");
+        spinner.id = "edit-result-spinner";
+        saveSpan.appendChild(spinner);
+        
+        // Adiciona manipulador de clique para salvar
+        saveButton.onclick = async function () {
+          const form = document.getElementById('edit-result-form');
+          
+          // Validação do formulário
+          form.classList.add('was-validated');
+          if (!form.checkValidity()) {
+            showNotification("Por favor, preencha os campos obrigatórios.", "warning");
+            return;
+          }
+
+          // Prepara os dados para envio
+          const payload = {
+            result: document.getElementById('edit-result').value.trim(),
+            observations: document.getElementById('edit-observations').value.trim(),
+            result_date: document.getElementById('edit-result-date').value,
+          };
+
+          try {
+            // Mostra indicador de carregamento
+            saveButton.disabled = true;
+            document.getElementById('edit-result-spinner').classList.remove('d-none');
+            
+            const response = await updateResult(resultadoAtual.id, payload);
+            
+            if (response) {
+              showNotification("Resultado atualizado com sucesso!", "success");
+              
+              // Atualiza os dados na memória e na interface
+              resultadoAtual = response;
+              preencherDetalhesResultado();
+              
+              // Fecha o modal
+              modal.hide();
+            } else {
+              throw new Error("Falha ao atualizar resultado");
+            }
+          } catch (error) {
+            console.error("Erro ao atualizar o resultado:", error);
+            showNotification("Ocorreu um erro ao atualizar o resultado. Tente novamente.", "error");
+          } finally {
+            saveButton.disabled = false;
+            document.getElementById('edit-result-spinner').classList.add('d-none');
+          }
+        };
+
+        // Cria e mostra o modal com array de botões
+        const modal = createModal("Editar Resultado", modalBody, [cancelButton, saveButton]);
+        modal.show();
+      }
+
+      async function excluirResultado() {
+        if (!resultadoAtual) return;
+        
+        showConfirmDialog(
+          "Excluir Resultado", 
+          `Você tem certeza que deseja excluir o resultado do exame "${agendamentoRelacionado?.exam?.name || 'N/A'}"? Esta ação não pode ser desfeita.`,
+          async () => {
+            try {
+              const response = await deleteResult(resultadoAtual.id);
+              
+              if (response) {
+                showNotification("Resultado excluído com sucesso!", "success");
+                // Redireciona para a página de agendamento após exclusão bem-sucedida
+                window.location.href = `./agendamento.html?id=${resultadoAtual.exam_scheduling_id}`;
+              } else {
+                throw new Error("Falha ao excluir resultado");
+              }
+            } catch (error) {
+              console.error("Erro ao excluir o resultado:", error);
+              showNotification("Ocorreu um erro ao excluir o resultado. Tente novamente.", "error");
+            }
+          }
+        );
+      }
+
+      // Inicializa a página
+      window.onload = carregarResultado;
+    </script>
+  </body>
+</html>

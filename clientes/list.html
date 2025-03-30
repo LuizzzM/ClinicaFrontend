@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lista de Clientes</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../assets/css/app.css" />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="../index.html">Gestão Clínica</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="../medicos/list.html">Médicos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="../clientes/list.html">Clientes</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../index.html">Exames</a>
+            </li>
+          </ul>
+          <button
+            class="btn btn-outline-light d-flex align-items-center justify-content-center"
+            onclick="desconectar()"
+            data-bs-toggle="tooltip"
+            data-bs-title="Desconectar"
+          >
+            <span class="material-icons">logout</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="flex-grow-1">
+      <div class="container mt-4">
+        <h1 class="text-center mb-4">Lista de Clientes</h1>
+        
+        <!-- Filtro de pesquisa e botão de cadastro -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="input-group w-50">
+            <span class="input-group-text"><i class="material-icons">search</i></span>
+            <input type="text" class="form-control" id="search-input" placeholder="Pesquisar por nome, CPF ou email..." aria-label="Pesquisar">
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary d-flex align-items-center"
+            data-bs-toggle="modal"
+            data-bs-target="#clientModal"
+          >
+            <i class="material-icons me-2">person_add</i> Cadastrar Cliente
+          </button>
+        </div>
+        
+        <!-- Modal de Cadastro de Cliente -->
+        <div class="modal fade" id="clientModal" tabindex="-1" aria-labelledby="clientModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="clientModalLabel">Cadastrar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form id="clientForm" novalidate>
+                  <div class="mb-3">
+                    <label for="name" class="form-label">Nome</label>
+                    <input type="text" class="form-control" id="name" name="name" required maxlength="255" />
+                    <div class="invalid-feedback">
+                      Por favor, informe o nome do cliente.
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="cpf" class="form-label">CPF</label>
+                    <input type="text" class="form-control" id="cpf" name="cpf" required maxlength="14" />
+                    <div class="invalid-feedback">
+                      Por favor, informe um CPF válido (11 dígitos).
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="birth_date" class="form-label">Data de Nascimento</label>
+                    <input type="date" class="form-control" id="birth_date" name="birth_date" required />
+                    <div class="invalid-feedback">
+                      Por favor, informe a data de nascimento.
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required maxlength="255" />
+                    <div class="invalid-feedback">
+                      Por favor, informe um email válido.
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="phone" class="form-label">Telefone</label>
+                    <input type="text" class="form-control" id="phone" name="phone" maxlength="15" />
+                    <div class="invalid-feedback">
+                      Por favor, informe um telefone válido.
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="address" class="form-label">Endereço</label>
+                    <input type="text" class="form-control" id="address" name="address" maxlength="255" />
+                  </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="submitClientForm()">
+                  <span class="d-flex align-items-center">
+                    <i class="material-icons me-2">save</i>
+                    Salvar
+                    <span id="saveSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 border rounded">
+          <div id="loadingClients" class="text-center">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Carregando clientes...</span>
+            </div>
+            <p class="mt-2">Carregando clientes...</p>
+          </div>
+          <div id="noResultsMessage" class="alert alert-info d-none" role="alert">
+            Nenhum cliente encontrado com os critérios de pesquisa.
+          </div>
+          <table class="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="clients-table-body">
+              <!-- Linhas serão preenchidas dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <footer class="bg-blue text-white text-center py-3 mt-4">
+      <p class="mb-0">© 2025 Gestão Clínica. Todos os direitos reservados.</p>
+    </footer>
+    <!-- Bootstrap JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Axios JS + Funções da API -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="../assets/js/api.js"></script>
+
+    <!-- Funções genéricas -->
+    <script src="../assets/js/app.js"></script>
+    <script src="../assets/js/forms.js"></script>
+
+    <script>
+      // Todos os clientes carregados
+      let allClients = [];
+      
+      // Inicializa validações de formulário
+      document.addEventListener('DOMContentLoaded', function() {
+        setupFormValidation('clientForm');
+        
+        // Adiciona evento para filtrar clientes conforme o usuário digita
+        document.getElementById('search-input').addEventListener('input', filterClients);
+      });
+
+      // Carrega todos os clientes do servidor
+      async function loadClients() {
+        try {
+          document.getElementById('loadingClients').classList.remove('d-none');
+          document.getElementById('clients-table-body').classList.add('d-none');
+          document.getElementById('noResultsMessage').classList.add('d-none');
+          
+          allClients = await getClients();
+          
+          if (allClients.length === 0) {
+            document.getElementById('noResultsMessage').textContent = 'Nenhum cliente cadastrado. Clique em "Cadastrar Cliente" para começar.';
+            document.getElementById('noResultsMessage').classList.remove('d-none');
+          } else {
+            renderClientsList(allClients);
+          }
+        } catch (error) {
+          console.error("Erro ao carregar clientes:", error);
+          showNotification("Erro ao carregar a lista de clientes. Tente novamente mais tarde.", "error");
+        } finally {
+          document.getElementById('loadingClients').classList.add('d-none');
+          document.getElementById('clients-table-body').classList.remove('d-none');
+        }
+      }
+
+      // Filtra a lista de clientes com base no texto de pesquisa
+      function filterClients() {
+        const searchText = document.getElementById('search-input').value.toLowerCase();
+        
+        if (!searchText) {
+          renderClientsList(allClients);
+          return;
+        }
+        
+        const filteredClients = allClients.filter(client => 
+          client.name.toLowerCase().includes(searchText) || 
+          (client.masked_cpf && client.masked_cpf.toLowerCase().includes(searchText)) ||
+          (client.email && client.email.toLowerCase().includes(searchText))
+        );
+        
+        if (filteredClients.length === 0) {
+          document.getElementById('noResultsMessage').textContent = 'Nenhum cliente encontrado com os critérios de pesquisa.';
+          document.getElementById('noResultsMessage').classList.remove('d-none');
+          document.getElementById('clients-table-body').innerHTML = '';
+        } else {
+          document.getElementById('noResultsMessage').classList.add('d-none');
+          renderClientsList(filteredClients);
+        }
+      }
+
+      // Renderiza a lista de clientes na tabela
+      function renderClientsList(clients) {
+        const tableBody = document.getElementById("clients-table-body");
+        tableBody.innerHTML = "";
+
+        clients.forEach((client) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${client.name}</td>
+            <td>${client.masked_cpf}</td>
+            <td>${client.email}</td>
+            <td>${client.masked_phone || '-'}</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Ações
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="./detalhes.html?id=${client.id}">
+                    <i class="material-icons me-2" style="font-size: 16px; vertical-align: text-bottom;">visibility</i>Ver detalhes
+                  </a></li>
+                  <li><a class="dropdown-item" href="../exames/agendar.html?clientId=${client.id}">
+                    <i class="material-icons me-2" style="font-size: 16px; vertical-align: text-bottom;">event</i>Agendar exame
+                  </a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" href="#" onclick="confirmDeleteClient(${client.id})">
+                    <i class="material-icons me-2" style="font-size: 16px; vertical-align: text-bottom;">delete</i>Excluir
+                  </a></li>
+                </ul>
+              </div>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      // Função para confirmar exclusão de cliente
+      function confirmDeleteClient(id) {
+        showConfirmDialog(
+          "Excluir Cliente", 
+          "Você tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.",
+          async () => {
+            try {
+              const result = await deleteClient(id);
+              if (result) {
+                showNotification("Cliente excluído com sucesso!", "success");
+                // Recarrega a lista de clientes
+                await loadClients();
+              } else {
+                showNotification("Erro ao excluir o cliente.", "error");
+              }
+            } catch (error) {
+              console.error("Erro ao excluir cliente:", error);
+              showNotification("Erro ao excluir o cliente. Tente novamente mais tarde.", "error");
+            }
+          }
+        );
+      }
+
+      // Salva os dados do formulário de cliente
+      async function submitClientForm() {
+        const form = document.getElementById('clientForm');
+        
+        // Verifica se o formulário é válido
+        form.classList.add('was-validated');
+        if (!form.checkValidity()) {
+          showNotification("Por favor, corrija os campos obrigatórios.", "warning");
+          return;
+        }
+        
+        // Mostra indicador de carregamento
+        const saveButton = document.querySelector('#clientModal .btn-primary');
+        const saveSpinner = document.getElementById('saveSpinner');
+        saveButton.disabled = true;
+        saveSpinner.classList.remove('d-none');
+        
+        try {
+          // Obtém os dados do formulário
+          const formData = new FormData(form);
+          const data = {
+            name: formData.get('name'),
+            cpf: formData.get('cpf').replace(/\D/g, ''),
+            birth_date: formData.get('birth_date'),
+            email: formData.get('email'),
+            phone: formData.get('phone') ? formData.get('phone').replace(/\D/g, '') : null,
+            address: formData.get('address')
+          };
+          
+          // Envia os dados para a API
+          const newClient = await createClient(data);
+          
+          if (newClient) {
+            // Adiciona o novo cliente à lista e atualiza a tabela
+            allClients.push(newClient);
+            renderClientsList(allClients);
+            
+            // Reset do formulário
+            form.reset();
+            form.classList.remove('was-validated');
+            
+            // Fecha o modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('clientModal'));
+            modal.hide();
+            
+            // Notifica o usuário
+            showNotification("Cliente cadastrado com sucesso!", "success");
+          } else {
+            throw new Error("Falha ao cadastrar cliente");
+          }
+        } catch (error) {
+          console.error('Erro ao cadastrar cliente:', error);
+          showNotification('Erro ao cadastrar cliente. Verifique os dados e tente novamente.', 'error');
+        } finally {
+          // Esconde indicador de carregamento
+          saveButton.disabled = false;
+          saveSpinner.classList.add('d-none');
+        }
+      }
+
+      // Carrega os clientes quando a página é carregada
+      window.onload = loadClients;
+    </script>
+  </body>
+</html>
