@@ -1,6 +1,8 @@
-Caio Cézar Oliveira Silva
-Filipe Santos Lima
-Luiz Augusto Mendes Barbosa
+# Autores
+
+- *Felipe Santos* ([GitHub](https://github.com/lsantosfelipe1))
+- *Luiz Augusto*  ([GitHub](https://github.com/LuizzzM))
+- *Caio César* ([GitHub](https://github.com/CaiaoCesar)) 
 # Sistema de Gerenciamento Clínico (Frontend)
 
 Uma aplicação web abrangente para gerenciamento clínico, agendamento de exames médicos, gerenciamento de pacientes e acompanhamento de resultados de exames.
