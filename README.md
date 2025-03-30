@@ -127,7 +127,7 @@ git clone https://github.com/LuizzzM/clinica
 
 2. Abra o projeto em seu editor de código preferido
 
-3. A aplicação foi projetada para funcionar com uma API backend rodando em `http://3.132.228.81/api/`. Certifique-se de que o backend esteja em execução ou atualize o API_URL em `assets/js/api.js` se estiver hospedado em outro local.
+3. A aplicação foi projetada para funcionar com uma API backend rodando em `https://clinicalmanager.mooo.com/api`. Certifique-se de que o backend esteja em execução ou atualize o API_URL em `assets/js/api.js` se estiver hospedado em outro local.
 
 4. Para executar localmente, você pode usar qualquer navegador, abrindo o arquivo index.html ou servidor local, como a extensão Live Server do VSCode.
 
