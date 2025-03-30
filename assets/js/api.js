@@ -1,4 +1,4 @@
-const API_URL = 'http://3.132.228.81/api';
+const API_URL = 'https://clinicalmanager.mooo.com/api';
 
 // Sistema de cache para armazenar respostas
 const apiCache = {
